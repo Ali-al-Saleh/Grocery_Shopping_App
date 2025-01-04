@@ -23,12 +23,14 @@ class _HomeState extends State<Home> {
   void fetchItems() async {
     setState(() {
       isLoading = true;
-      calculator.total = 0.0;
-      for (var item in groceryItems) {
-        item.quantitySelected = 0;
-      }
     });
     await fetchGroceryItems((success) {
+      if (success) {
+        for (var item in groceryItems) {
+          item.quantitySelected = 0;
+        }
+        calculator.total = 0.0;
+      }
       setState(() {
         isLoading = !success;
       });
@@ -156,9 +158,49 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: Container(
         color: Colors.green,
         padding: const EdgeInsets.all(16),
-        child: Text(
-          'Total: \$${calculator.total.toStringAsFixed(2)}',
-          style: const TextStyle(color: Colors.white, fontSize: 18),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              onPressed: () {
+                String purchasedItems = groceryItems
+                    .where((item) => item.quantitySelected > 0)
+                    .map((item) =>
+                '${item.quantitySelected} x ${item.name} (\$${(item.quantitySelected * item.price).toStringAsFixed(2)})')
+                    .join('\n');
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Congratulations!'),
+                      content: Text(
+                          'You bought the following items:\n\n$purchasedItems\n\nYour total is: \$${calculator.total.toStringAsFixed(2)}\n\nThanks for shopping at your Local Grocery Picker!'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: const Text(
+                'Buy Now!',
+                style: TextStyle(color: Colors.green),
+              ),
+            ),
+            Text(
+              'Total: \$${calculator.total.toStringAsFixed(2)}',
+              style: const TextStyle(color: Colors.white, fontSize: 18),
+            ),
+          ],
         ),
       ),
     );
