@@ -23,6 +23,10 @@ class _HomeState extends State<Home> {
   void fetchItems() async {
     setState(() {
       isLoading = true;
+      calculator.total = 0.0;
+      for (var item in groceryItems) {
+        item.quantitySelected = 0;
+      }
     });
     await fetchGroceryItems((success) {
       setState(() {
